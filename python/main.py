@@ -23,6 +23,14 @@ app.add_middleware(
 def root():
     return {"message": "Hello, world!"}
 
+@app.get("/items")
+def root():
+    filename = 'item.json'
+    js_r = open(filename, 'r')
+    j_data = json.load(js_r)
+    js_r.close()
+    return j_data
+
 @app.post("/items")
 def add_item(name: str = Form(...),category: str = Form(...)):
     filename = 'item.json'

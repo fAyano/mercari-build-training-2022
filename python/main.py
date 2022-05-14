@@ -25,12 +25,22 @@ def root():
     return {"message": "Hello, world!"}
 
 @app.get("/items")
-def root():
-    filename = 'item.json'
-    js_r = open(filename, 'r')
-    j_data = json.load(js_r)
-    js_r.close()
-    return j_data
+def get_items():
+    #---json---
+    # filename = 'item.json'
+    # js_r = open(filename, 'r')
+    # j_data = json.load(js_r)
+    # js_r.close()
+    # return j_data
+    #---------
+
+    #---sqlite3---
+    conn = sqlite3.connect('../db/mercari.sqlite3')
+    c = conn.cursor()
+    sql = 'select * from items'
+    c.execute(sql)
+    return {"items": c.fetchall()}
+    #-------------
 
 @app.post("/items")
 def add_item(id: int = Form(...), name: str = Form(...), category: str = Form(...)):

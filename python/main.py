@@ -2,6 +2,7 @@ import os
 import logging
 import pathlib
 import json
+import sqlite3
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,20 +33,31 @@ def root():
     return j_data
 
 @app.post("/items")
-def add_item(name: str = Form(...),category: str = Form(...)):
-    filename = 'item.json'
-    js_r = open(filename, 'r')
-    j_data = json.load(js_r)
-    js_r.close()
-    j_add = {'name': name, 'category': category}
-    j_data['items'].append(j_add)
-    js_r = open(filename, 'w')
-    json.dump(j_data, js_r, indent = 2)
-    js_r.close()
+def add_item(id: int = Form(...), name: str = Form(...), category: str = Form(...)):
+    #---json---
+    # filename = 'item.json'
+    # js_r = open(filename, 'r')
+    # j_data = json.load(js_r)
+    # js_r.close()
+    # j_add = {'name': name, 'category': category}
+    # j_data['items'].append(j_add)
+    # js_r = open(filename, 'w')
+    # json.dump(j_data, js_r, indent = 2)
+    # js_r.close()
+    #----------
+
+    #---sqlite3---
+    conn = sqlite3.connect('../db/mercari.sqlite3')
+    c = conn.cursor()
+    c.execute("INSERT INTO items VALUES (?,?,?)",(id, name, category))
+    conn.commit()
+    conn.close()
+    #-------------
 
     logger.info(f"Receive item: name -> {name}, category -> {category}")
     return {"message": f"item received: {name}"}
 
+    
 @app.get("/image/{items_image}")
 async def get_image(items_image):
     # Create image path

@@ -3,6 +3,7 @@ import logging
 import pathlib
 import json
 import sqlite3
+import hashlib
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 logger = logging.getLogger("uvicorn")
 logger.level = logging.INFO
-images = pathlib.Path(__file__).parent.resolve() / "image"
+images = pathlib.Path(__file__).parent.resolve() / "images"
 origins = [ os.environ.get('FRONT_URL', 'http://localhost:3000') ]
 app.add_middleware(
     CORSMiddleware,
@@ -42,9 +43,16 @@ def get_items():
     return {"items": c.fetchall()}
     #-------------
 
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
+
 @app.get("/search")
 def get_search(keyword: str):
     conn = sqlite3.connect('../db/mercari.sqlite3')
+    conn.row_factory = dict_factory
     c = conn.cursor()
     sql = "select name,category from items where name like (?)"
     c.execute(sql,(f"%{keyword}%",))

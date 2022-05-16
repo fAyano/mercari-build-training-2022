@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS items (
-        id    INTEGER UNIQUE,
+        id    INTEGER PRIMARY KEY AUTOINCREMENT,
         name  TEXT,
-        category      TEXT
+        category      TEXT,
+        image  TEXT
 );

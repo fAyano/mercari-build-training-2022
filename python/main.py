@@ -59,6 +59,15 @@ def get_search(keyword: str):
     c.execute(sql,(f"%{keyword}%",))
     return {"items": c.fetchall()}
 
+@app.get("/items/{items_id}")
+def get_itemid(items_id):
+    conn = sqlite3.connect('../db/mercari.sqlite3')
+    conn.row_factory = dict_factory
+    c = conn.cursor()
+    sql = "select name,category,image from items where id like (?)"
+    c.execute(sql,(items_id,))
+    return {"items": c.fetchall()}
+
 @app.post("/items")
 def add_item(name: str = Form(...), category: str = Form(...), image: str = Form(...)): #id: int = Form(...), 
     #---json---

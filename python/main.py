@@ -74,10 +74,16 @@ def add_item(name: str = Form(...), category: str = Form(...), image: str = Form
     #----------
 
     #---sqlite3---
-    hash = hashlib.sha256(image[:-4].encode('utf-8')).hexdigest() + '.jpg'
+    if image[-4:] == '.jpg':
+        hash_image = hashlib.sha256(image[:-4].encode('utf-8')).hexdigest() + '.jpg'
+    elif image[-5:] == '.jpeg':
+        hash_image = hashlib.sha256(image[:-5].encode('utf-8')).hexdigest() + '.jpeg'
+    else:
+        hash_image = hashlib.sha256(image[:-4].encode('utf-8')).hexdigest() + image[-4:]
+
     conn = sqlite3.connect('../db/mercari.sqlite3')
     c = conn.cursor()
-    c.execute("INSERT INTO items (name, category, image) VALUES (?,?,?)",(name, category, hash)) #id, 
+    c.execute("INSERT INTO items (name, category, image) VALUES (?,?,?)",(name, category, hash_image)) #id, 
     conn.commit()
     conn.close()
     #-------------

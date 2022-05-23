@@ -37,8 +37,9 @@ def get_items():
 
     #---sqlite3---
     conn = sqlite3.connect('../db/mercari.sqlite3')
+    conn.row_factory = dict_factory
     c = conn.cursor()
-    sql = 'select * from items'
+    sql = 'select items.name, category.name as category, items.image from items inner join category on items.category_id = category.id'
     c.execute(sql)
     return {"items": c.fetchall()}
     #-------------
@@ -54,12 +55,21 @@ def get_search(keyword: str):
     conn = sqlite3.connect('../db/mercari.sqlite3')
     conn.row_factory = dict_factory
     c = conn.cursor()
-    sql = "select name,category from items where name like (?)"
+    sql = "select name,category_id from items where name like (?)"
     c.execute(sql,(f"%{keyword}%",))
     return {"items": c.fetchall()}
 
+@app.get("/items/{items_id}")
+def get_itemid(items_id):
+    conn = sqlite3.connect('../db/mercari.sqlite3')
+    conn.row_factory = dict_factory
+    c = conn.cursor()
+    sql = "select name,category_id,image from items where id like (?)"
+    c.execute(sql,(items_id,))
+    return {"items": c.fetchall()}
+
 @app.post("/items")
-def add_item(id: int = Form(...), name: str = Form(...), category: str = Form(...)):
+def add_item(name: str = Form(...), category: str = Form(...), image: str = Form(...)): #id: int = Form(...), 
     #---json---
     # filename = 'item.json'
     # js_r = open(filename, 'r')
@@ -73,9 +83,24 @@ def add_item(id: int = Form(...), name: str = Form(...), category: str = Form(..
     #----------
 
     #---sqlite3---
+    if image[-4:] == '.jpg':
+        hash_image = hashlib.sha256(image[:-4].encode('utf-8')).hexdigest() + '.jpg'
+    elif image[-5:] == '.jpeg':
+        hash_image = hashlib.sha256(image[:-5].encode('utf-8')).hexdigest() + '.jpeg'
+    else:
+        hash_image = hashlib.sha256(image[:-4].encode('utf-8')).hexdigest() + image[-4:]
+    
+    image_file = open(image, 'rb')
+    hash_image_file = open(os.path.join('../image', hash_image), 'wb') # ファイルが新規作成される
+    hash_image_file.write(image_file.read())
+    image_file.close()
+    hash_image_file.close() 
+
     conn = sqlite3.connect('../db/mercari.sqlite3')
     c = conn.cursor()
-    c.execute("INSERT INTO items VALUES (?,?,?)",(id, name, category))
+    c.execute("select id from category where name like (?)",(category,)) 
+    category_id = c.fetchone()[0]
+    c.execute("INSERT INTO items (name, category_id, image) VALUES (?,?,?)",(name, category_id, hash_image)) #id, 
     conn.commit()
     conn.close()
     #-------------

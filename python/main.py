@@ -90,8 +90,8 @@ def add_item(name: str = Form(...), category: str = Form(...), image: str = Form
     else:
         hash_image = hashlib.sha256(image[:-4].encode('utf-8')).hexdigest() + image[-4:]
     
-    image_file = open(image, 'r')
-    hash_image_file = open(os.path.join(hash_image), 'w') # ファイルが新規作成される
+    image_file = open(image, 'rb')
+    hash_image_file = open(os.path.join('../image', hash_image), 'wb') # ファイルが新規作成される
     hash_image_file.write(image_file.read())
     image_file.close()
     hash_image_file.close() 
